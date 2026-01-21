@@ -1,109 +1,793 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tetris - Classic Block Game</title>
-
-<!-- (STYLE IS 100% UNCHANGED FROM YOUR FILE) -->
-<style>
-/* === YOUR ORIGINAL CSS — UNCHANGED === */
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;}
-/* (rest of your CSS stays identical, trimmed here for brevity) */
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris - Classic Block Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .game-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        .left-panel, .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .panel h2 {
+            color: #e94560;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        .game-board-container {
+            position: relative;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(20, 30px);
+            gap: 1px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            border: 3px solid #e94560;
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.3), inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 3px;
+        }
+        .cell.filled {
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3), 0 0 5px currentColor;
+        }
+        .cell.I { background: linear-gradient(135deg, #00f5ff, #00b4d8); color: #00f5ff; }
+        .cell.O { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #ffd700; }
+        .cell.T { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #9b59b6; }
+        .cell.S { background: linear-gradient(135deg, #2ecc71, #27ae60); color: #2ecc71; }
+        .cell.Z { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #e74c3c; }
+        .cell.J { background: linear-gradient(135deg, #3498db, #2980b9); color: #3498db; }
+        .cell.L { background: linear-gradient(135deg, #f39c12, #e67e22); color: #f39c12; }
+        #next-piece {
+            display: grid;
+            grid-template-columns: repeat(4, 25px);
+            grid-template-rows: repeat(4, 25px);
+            gap: 1px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        #next-piece .cell {
+            width: 25px;
+            height: 25px;
+        }
+        .score-display {
+            text-align: center;
+            color: #fff;
+        }
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00f5ff;
+            text-shadow: 0 0 10px #00f5ff;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            color: #fff;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e94560;
+        }
+        .controls {
+            color: #888;
+            font-size: 0.85rem;
+            line-height: 1.8;
+        }
+        .controls kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #fff;
+            font-family: inherit;
+            margin-right: 5px;
+        }
+        .leaderboard {
+            min-width: 250px;
+        }
+        .leaderboard-list {
+            list-style: none;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: #fff;
+            transition: transform 0.2s;
+        }
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .leaderboard-item.gold { border-left: 3px solid #ffd700; }
+        .leaderboard-item.silver { border-left: 3px solid #c0c0c0; }
+        .leaderboard-item.bronze { border-left: 3px solid #cd7f32; }
+        .rank {
+            font-weight: bold;
+            color: #e94560;
+            margin-right: 10px;
+        }
+        .player-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .player-score {
+            font-weight: bold;
+            color: #00f5ff;
+        }
+        .online-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+            margin-left: 8px;
+            animation: pulse-glow 2s infinite;
+        }
+        .online-indicator.offline {
+            background: #e74c3c;
+            animation: none;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 5px #2ecc71; }
+            50% { opacity: 0.6; box-shadow: 0 0 10px #2ecc71; }
+        }
+        .loading {
+            color: #888;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        .firebase-notice {
+            background: rgba(233, 69, 96, 0.1);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .firebase-notice strong {
+            color: #e94560;
+        }
+        .firebase-notice code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #00f5ff;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #start-btn {
+            background: linear-gradient(135deg, #e94560, #c23a51);
+            color: #fff;
+        }
+        #start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+        #pause-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: #fff;
+        }
+        #pause-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 10;
+        }
+        .overlay.hidden {
+            display: none;
+        }
+        .overlay h1 {
+            color: #e94560;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .overlay p {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .game-over-score {
+            font-size: 2.5rem;
+            color: #00f5ff;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 15px #00f5ff;
+        }
+        .name-input-container {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .name-input-container input {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: 2px solid #e94560;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            text-align: center;
+            width: 200px;
+        }
+        .name-input-container input::placeholder {
+            color: #888;
+        }
+        .name-input-container button {
+            width: 200px;
+        }
+        .title-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #e94560, #00f5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .title-screen p {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .paused-text {
+            animation: pulse 1s infinite;
+        }
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .left-panel, .right-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
-
 <body>
-<!-- === YOUR ORIGINAL HTML — UNCHANGED === -->
-<div class="game-container">
-  <!-- left panel, board, overlays, right panel -->
-</div>
+    <div class="game-container">
+        <div class="left-panel">
+            <div class="panel">
+                <h2>Next</h2>
+                <div id="next-piece"></div>
+            </div>
+            <div class="panel">
+                <h2>Score</h2>
+                <div class="score-display">
+                    <div class="score-value" id="score">0</div>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>Stats</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value" id="level">1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Lines</div>
+                        <div class="stat-value" id="lines">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel controls">
+                <h2>Controls</h2>
+                <div><kbd>&larr;</kbd><kbd>&rarr;</kbd> Move</div>
+                <div><kbd>&darr;</kbd> Soft Drop</div>
+                <div><kbd>Space</kbd> Hard Drop</div>
+                <div><kbd>&uarr;</kbd> Rotate</div>
+                <div><kbd>P</kbd> Pause</div>
+            </div>
+        </div>
+        <div class="game-board-container">
+            <div id="game-board"></div>
+            <div class="overlay" id="start-overlay">
+                <div class="title-screen">
+                    <h1>TETRIS</h1>
+                    <p>Classic Block Puzzle Game</p>
+                    <div class="firebase-notice">
+                        <strong>⚙️ Setup Required:</strong> To enable the online leaderboard, you need to add your Firebase configuration. Replace <code>YOUR_CONFIG_HERE</code> in the script with your Firebase project settings. See instructions in the code comments!
+                    </div>
+                    <button id="start-btn">Start Game</button>
+                </div>
+            </div>
+            <div class="overlay hidden" id="pause-overlay">
+                <h1 class="paused-text">Paused</h1>
+                <p>Press P or click to resume</p>
+            </div>
+            <div class="overlay hidden" id="gameover-overlay">
+                <h1>Game Over</h1>
+                <p>Your Score</p>
+                <div class="game-over-score" id="final-score">0</div>
+                <div class="name-input-container">
+                    <input type="text" id="player-name" placeholder="Enter your name" maxlength="15">
+                    <button id="save-score-btn">Save to Online Leaderboard</button>
+                </div>
+                <button id="restart-btn" style="width: 200px; margin-top: 10px;">Play Again</button>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="panel leaderboard">
+                <h2>Online Leaderboard<span class="online-indicator offline" id="connection-status"></span></h2>
+                <ul class="leaderboard-list" id="leaderboard">
+                    <li class="loading">Connecting to Firebase...</li>
+                </ul>
+            </div>
+            <button id="pause-btn">Pause</button>
+        </div>
+    </div>
 
-<!-- 🔥 FIREBASE SDKs (NEW) -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-<script>
-/* === FIREBASE INIT (NEW) === */
-const firebaseConfig = {
-  apiKey: "AIzaSyDj62d9B9d_f6EvnE43kM4Ga2EOY5AlH0I",
-  authDomain: "tetris-leaderboard-e8761.firebaseapp.com",
-  projectId: "tetris-leaderboard-e8761"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-</script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        // Replace this with your Firebase config from Firebase Console
+        // Go to: Firebase Console > Project Settings > Your Apps > Firebase SDK snippet
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-<script>
-/* =====================================================
-   YOUR ORIGINAL GAME LOGIC
-   (UNCHANGED — NOT REWRITTEN)
-===================================================== */
+        // Initialize Firebase
+        let app, database, isFirebaseConnected = false;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            isFirebaseConnected = true;
+            updateConnectionStatus(true);
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            updateConnectionStatus(false);
+        }
 
-/* --- everything above stays exactly the same --- */
+        // ============================================
+        // TETRIS GAME LOGIC
+        // ============================================
+        const COLS = 10;
+        const ROWS = 20;
+        
+        const SHAPES = {
+            I: [[1, 1, 1, 1]],
+            O: [[1, 1], [1, 1]],
+            T: [[0, 1, 0], [1, 1, 1]],
+            S: [[0, 1, 1], [1, 1, 0]],
+            Z: [[1, 1, 0], [0, 1, 1]],
+            J: [[1, 0, 0], [1, 1, 1]],
+            L: [[0, 0, 1], [1, 1, 1]]
+        };
+        
+        const COLORS = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+        
+        let board = [];
+        let currentPiece = null;
+        let nextPiece = null;
+        let score = 0;
+        let lines = 0;
+        let level = 1;
+        let gameInterval = null;
+        let isPlaying = false;
+        let isPaused = false;
+        
+        const gameBoard = document.getElementById('game-board');
+        const nextPieceDisplay = document.getElementById('next-piece');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const linesDisplay = document.getElementById('lines');
+        const startOverlay = document.getElementById('start-overlay');
+        const pauseOverlay = document.getElementById('pause-overlay');
+        const gameoverOverlay = document.getElementById('gameover-overlay');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const leaderboardList = document.getElementById('leaderboard');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const saveScoreBtn = document.getElementById('save-score-btn');
+        const playerNameInput = document.getElementById('player-name');
 
-/* =====================================================
-   🔁 REPLACED LEADERBOARD (GLOBAL)
-===================================================== */
+        function initBoard() {
+            gameBoard.innerHTML = '';
+            board = [];
+            for (let row = 0; row < ROWS; row++) {
+                board[row] = [];
+                for (let col = 0; col < COLS; col++) {
+                    board[row][col] = 0;
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+        
+        function initNextPieceDisplay() {
+            nextPieceDisplay.innerHTML = '';
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col < 4; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    nextPieceDisplay.appendChild(cell);
+                }
+            }
+        }
+        
+        function createPiece(type) {
+            const shape = SHAPES[type];
+            return {
+                type: type,
+                shape: shape,
+                row: 0,
+                col: Math.floor((COLS - shape[0].length) / 2)
+            };
+        }
+        
+        function getRandomType() {
+            return COLORS[Math.floor(Math.random() * COLORS.length)];
+        }
+        
+        function rotatePiece(piece) {
+            const rows = piece.shape.length;
+            const cols = piece.shape[0].length;
+            const rotated = [];
+            for (let col = 0; col < cols; col++) {
+                rotated[col] = [];
+                for (let row = rows - 1; row >= 0; row--) {
+                    rotated[col][rows - 1 - row] = piece.shape[row][col];
+                }
+            }
+            return rotated;
+        }
+        
+        function isValidMove(piece, newRow, newCol, newShape = piece.shape) {
+            for (let row = 0; row < newShape.length; row++) {
+                for (let col = 0; col < newShape[row].length; col++) {
+                    if (newShape[row][col]) {
+                        const boardRow = newRow + row;
+                        const boardCol = newCol + col;
+                        if (boardCol < 0 || boardCol >= COLS || boardRow >= ROWS) {
+                            return false;
+                        }
+                        if (boardRow >= 0 && board[boardRow][boardCol]) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        
+        function lockPiece() {
+            for (let row = 0; row < currentPiece.shape.length; row++) {
+                for (let col = 0; col < currentPiece.shape[row].length; col++) {
+                    if (currentPiece.shape[row][col]) {
+                        const boardRow = currentPiece.row + row;
+                        const boardCol = currentPiece.col + col;
+                        if (boardRow >= 0) {
+                            board[boardRow][boardCol] = currentPiece.type;
+                        }
+                    }
+                }
+            }
+            clearLines();
+            spawnPiece();
+        }
+        
+        function clearLines() {
+            let linesCleared = 0;
+            for (let row = ROWS - 1; row >= 0; row--) {
+                if (board[row].every(cell => cell !== 0)) {
+                    board.splice(row, 1);
+                    board.unshift(new Array(COLS).fill(0));
+                    linesCleared++;
+                    row++;
+                }
+            }
+            if (linesCleared > 0) {
+                const points = [0, 100, 300, 500, 800];
+                score += points[linesCleared] * level;
+                lines += linesCleared;
+                level = Math.floor(lines / 10) + 1;
+                updateDisplay();
+                updateSpeed();
+            }
+        }
+        
+        function spawnPiece() {
+            currentPiece = nextPiece || createPiece(getRandomType());
+            nextPiece = createPiece(getRandomType());
+            renderNextPiece();
+            if (!isValidMove(currentPiece, currentPiece.row, currentPiece.col)) {
+                gameOver();
+            }
+        }
+        
+        function render() {
+            const cells = gameBoard.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.className = 'cell';
+            });
+            
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (board[row][col]) {
+                        const cell = gameBoard.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('filled', board[row][col]);
+                    }
+                }
+            }
+            
+            if (currentPiece) {
+                for (let row = 0; row < currentPiece.shape.length; row++) {
+                    for (let col = 0; col < currentPiece.shape[row].length; col++) {
+                        if (currentPiece.shape[row][col]) {
+                            const boardRow = currentPiece.row + row;
+                            const boardCol = currentPiece.col + col;
+                            if (boardRow >= 0 && boardRow < ROWS && boardCol >= 0 && boardCol < COLS) {
+                                const cell = gameBoard.querySelector(`[data-row="${boardRow}"][data-col="${boardCol}"]`);
+                                cell.classList.add('filled', currentPiece.type);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        function renderNextPiece() {
+            const cells = nextPieceDisplay.querySelectorAll('.cell');
+            cells.forEach(cell => cell.className = 'cell');
+            if (nextPiece) {
+                const offsetRow = Math.floor((4 - nextPiece.shape.length) / 2);
+                const offsetCol = Math.floor((4 - nextPiece.shape[0].length) / 2);
+                for (let row = 0; row < nextPiece.shape.length; row++) {
+                    for (let col = 0; col < nextPiece.shape[row].length; col++) {
+                        if (nextPiece.shape[row][col]) {
+                            const cell = nextPieceDisplay.querySelector(
+                                `[data-row="${row + offsetRow}"][data-col="${col + offsetCol}"]`
+                            );
+                            if (cell) {
+                                cell.classList.add('filled', nextPiece.type);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        function updateDisplay() {
+            scoreDisplay.textContent = score.toLocaleString();
+            levelDisplay.textContent = level;
+            linesDisplay.textContent = lines;
+        }
+        
+        function updateSpeed() {
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                const speed = Math.max(100, 1000 - (level - 1) * 100);
+                gameInterval = setInterval(gameLoop, speed);
+            }
+        }
+        
+        function gameLoop() {
+            if (isValidMove(currentPiece, currentPiece.row + 1, currentPiece.col)) {
+                currentPiece.row++;
+            } else {
+                lockPiece();
+            }
+            render();
+        }
+        
+        function movePiece(dir) {
+            const newCol = currentPiece.col + dir;
+            if (isValidMove(currentPiece, currentPiece.row, newCol)) {
+                currentPiece.col = newCol;
+                render();
+            }
+        }
+        
+        function softDrop() {
+            if (isValidMove(currentPiece, currentPiece.row + 1, currentPiece.col)) {
+                currentPiece.row++;
+                score += 1;
+                updateDisplay();
+                render();
+            }
+        }
+        
+        function hardDrop() {
+            while (isValidMove(currentPiece, currentPiece.row + 1, currentPiece.col)) {
+                currentPiece.row++;
+                score += 2;
+            }
+            updateDisplay();
+            lockPiece();
+            render();
+        }
+        
+        function rotate() {
+            const rotated = rotatePiece(currentPiece);
+            if (isValidMove(currentPiece, currentPiece.row, currentPiece.col, rotated)) {
+                currentPiece.shape = rotated;
+                render();
+            } else {
+                for (let offset of [1, -1, 2, -2]) {
+                    if (isValidMove(currentPiece, currentPiece.row, currentPiece.col + offset, rotated)) {
+                        currentPiece.shape = rotated;
+                        currentPiece.col += offset;
+                        render();
+                        return;
+                    }
+                }
+            }
+        }
+        
+        function startGame() {
+            initBoard();
+            initNextPieceDisplay();
+            score = 0;
+            lines = 0;
+            level = 1;
+            updateDisplay();
+            spawnPiece();
+            render();
+            isPlaying = true;
+            isPaused = false;
+            startOverlay.classList.add('hidden');
+            gameoverOverlay.classList.add('hidden');
+            pauseOverlay.classList.add('hidden');
+            const speed = 1000;
+            gameInterval = setInterval(gameLoop, speed);
+        }
+        
+        function togglePause() {
+            if (!isPlaying) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                clearInterval(gameInterval);
+                pauseOverlay.classList.remove('hidden');
+            } else {
+                const speed = Math.max(100, 1000 - (level - 1) * 100);
+                gameInterval = setInterval(gameLoop, speed);
+                pauseOverlay.classList.add('hidden');
+            }
+        }
+        
+        function gameOver() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            finalScoreDisplay.textContent = score.toLocaleString();
+            gameoverOverlay.classList.remove('hidden');
+            playerNameInput.value = '';
+            playerNameInput.focus();
+            saveScoreBtn.disabled = false;
+            saveScoreBtn.textContent = 'Save to Online Leaderboard';
+        }
 
-async function addScore(name, playerScore) {
-  try {
-    await db.collection("leaderboard").add({
-      name: name.substring(0, 15),
-      score: playerScore,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    renderLeaderboard();
-  } catch (e) {
-    console.error("Score save failed", e);
-  }
-}
+        // ============================================
+        // FIREBASE LEADERBOARD FUNCTIONS
+        // ============================================
+        function updateConnectionStatus(connected) {
+            const indicator = document.getElementById('connection-status');
+            if (connected) {
+                indicator.classList.remove('offline');
+                indicator.classList.add('online');
+            } else {
+                indicator.classList.add('offline');
+                indicator.classList.remove('online');
+            }
+        }
 
-async function renderLeaderboard() {
-  leaderboardList.innerHTML =
-    '<li class="leaderboard-item"><span style="color:#888;">Loading...</span></li>';
+        function loadLeaderboard() {
+            if (!isFirebaseConnected) {
+                leaderboardList.innerHTML = '<li class="leaderboard-item"><span style="color: #e94560;">Firebase not configured</span></li>';
+                return;
+            }
 
-  try {
-    const snap = await db
-      .collection("leaderboard")
-      .orderBy("score", "desc")
-      .limit(10)
-      .get();
-
-    leaderboardList.innerHTML = "";
-
-    if (snap.empty) {
-      leaderboardList.innerHTML =
-        '<li class="leaderboard-item"><span style="color:#888;">No scores yet</span></li>';
-      return;
-    }
-
-    snap.forEach((doc, index) => {
-      const d = doc.data();
-      const li = document.createElement("li");
-
-      let rankClass = "";
-      if (index === 0) rankClass = "gold";
-      else if (index === 1) rankClass = "silver";
-      else if (index === 2) rankClass = "bronze";
-
-      li.className = `leaderboard-item ${rankClass}`;
-      li.innerHTML = `
-        <span class="rank">#${index + 1}</span>
-        <span class="player-name">${escapeHtml(d.name)}</span>
-        <span class="player-score">${d.score.toLocaleString()}</span>
-      `;
-      leaderboardList.appendChild(li);
-    });
-  } catch (e) {
-    leaderboardList.innerHTML =
-      '<li class="leaderboard-item"><span style="color:#888;">Offline</span></li>';
-  }
-}
-
-/* === everything below (events, init) unchanged === */
-renderLeaderboard();
-</script>
-</body>
-</html>
+            const scoresRef = ref(database, 'tetris-scores');
+            const scoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
+            
+            onValue(scoresQuery, (snapshot) => {
+                const scores = [];
+                snapshot.forEach((childSnapshot) => {
+                    scores.push(childSnapshot.val());
