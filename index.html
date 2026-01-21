@@ -476,6 +476,69 @@ async function renderLeaderboard()
 </script>
 
     <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDj62d9B9d_f6EvnE43kM4Ga2EOY5AlH0I",
+    authDomain: "tetris-leaderboard-e8761.firebaseapp.com",
+    projectId: "tetris-leaderboard-e8761",
+    storageBucket: "tetris-leaderboard-e8761.firebasestorage.app",
+    messagingSenderId: "25156481672",
+    appId: "1:25156481672:web:bdb2ab27f0ed196b31253d"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  async function addScore(name, score) {
+    if (score < 0 || score > 500000) return;
+
+    await db.collection("leaderboard").add({
+      name: name.substring(0, 15),
+      score: score,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    renderLeaderboard();
+  }
+
+  async function renderLeaderboard() {
+    leaderboardList.innerHTML =
+      '<li class="leaderboard-item"><span style="color:#888;">Loading...</span></li>';
+
+    const snapshot = await db
+      .collection("leaderboard")
+      .orderBy("score", "desc")
+      .limit(10)
+      .get();
+
+    leaderboardList.innerHTML = "";
+
+    if (snapshot.empty) {
+      leaderboardList.innerHTML =
+        '<li class="leaderboard-item"><span style="color:#888;">No scores yet</span></li>';
+      return;
+    }
+
+    snapshot.forEach((doc, index) => {
+      const data = doc.data();
+      const li = document.createElement("li");
+
+      let rankClass = "";
+      if (index === 0) rankClass = "gold";
+      else if (index === 1) rankClass = "silver";
+      else if (index === 2) rankClass = "bronze";
+
+      li.className = `leaderboard-item ${rankClass}`;
+      li.innerHTML = `
+        <span class="rank">#${index + 1}</span>
+        <span class="player-name">${escapeHtml(data.name)}</span>
+        <span class="player-score">${data.score.toLocaleString()}</span>
+      `;
+
+      leaderboardList.appendChild(li);
+    });
+  }
+</script>
+
         // Tetris Game Logic
         const COLS = 10;
         const ROWS = 20;
@@ -831,46 +894,6 @@ async function renderLeaderboard()
             playerNameInput.focus();
         }
 
-        // Leaderboard functions
-
-        }
-
-        function addScore(name, playerScore) {
-            const leaderboard = getLeaderboard();
-            leaderboard.push({ name, score: playerScore, date: new Date().toISOString() });
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard.splice(10); // Keep only top 10
-            saveLeaderboard(leaderboard);
-            renderLeaderboard();
-        }
-
-        function renderLeaderboard() {
-            const leaderboard = getLeaderboard();
-            leaderboardList.innerHTML = '';
-
-            if (leaderboard.length === 0) {
-                leaderboardList.innerHTML = '<li class="leaderboard-item"><span style="color: #888;">No scores yet</span></li>';
-                return;
-            }
-
-            leaderboard.forEach((entry, index) => {
-                const li = document.createElement('li');
-                let rankClass = '';
-                if (index === 0) rankClass = 'gold';
-                else if (index === 1) rankClass = 'silver';
-                else if (index === 2) rankClass = 'bronze';
-
-                li.className = `leaderboard-item ${rankClass}`;
-                li.innerHTML = `
-                    <span class="rank">#${index + 1}</span>
-                    <span class="player-name">${escapeHtml(entry.name)}</span>
-                    <span class="player-score">${entry.score.toLocaleString()}</span>
-                `;
-                leaderboardList.appendChild(li);
-            });
-        }
-
-        function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
