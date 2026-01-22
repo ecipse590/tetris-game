@@ -778,42 +778,76 @@
             }
         }
 
-        function loadLeaderboard() {
-            if (!isFirebaseConnected) {
-                leaderboardList.innerHTML = '<li class="leaderboard-item"><span style="color: #e94560;">Firebase not configured</span></li>';
-                return;
-            }
+   function loadLeaderboard() {
+    if (!isFirebaseConnected) {
+        leaderboardList.innerHTML =
+            '<li class="leaderboard-item"><span style="color:#e94560;">Firebase not connected</span></li>';
+        return;
+    }
 
-            const scoresRef = ref(database, 'tetris-scores');
-            const scoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
-            
-            onValue(scoresQuery, (snapshot) => {
-    const scores = [];
+    const scoresRef = ref(database, 'tetris-scores');
+    const scoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
 
-    snapshot.forEach((childSnapshot) => {
-        scores.push(childSnapshot.val());
+    onValue(scoresQuery, (snapshot) => {
+        const scores = [];
+
+        snapshot.forEach((childSnapshot) => {
+            scores.push(childSnapshot.val());
+        });
+
+        scores.sort((a, b) => b.score - a.score);
+        leaderboardList.innerHTML = '';
+
+        if (scores.length === 0) {
+            leaderboardList.innerHTML =
+                '<li class="leaderboard-item"><span style="color:#888;">No scores yet</span></li>';
+            return;
+        }
+
+        scores.forEach((entry, index) => {
+            const li = document.createElement('li');
+
+            let medal = '';
+            if (index === 0) medal = 'gold';
+            else if (index === 1) medal = 'silver';
+            else if (index === 2) medal = 'bronze';
+
+            li.className = `leaderboard-item ${medal}`;
+            li.innerHTML = `
+                <span class="rank">#${index + 1}</span>
+                <span class="player-name">${entry.name}</span>
+                <span class="player-score">${entry.score.toLocaleString()}</span>
+            `;
+            leaderboardList.appendChild(li);
+        });
+    });
+}
+
+// Save score to Firebase
+function saveScoreOnline() {
+    if (!isFirebaseConnected) return;
+
+    const name = playerNameInput.value.trim() || 'Anonymous';
+
+    push(ref(database, 'tetris-scores'), {
+        name: name.substring(0, 15),
+        score: score,
+        timestamp: Date.now()
     });
 
-    scores.sort((a, b) => b.score - a.score);
-    leaderboardList.innerHTML = '';
+    saveScoreBtn.disabled = true;
+    saveScoreBtn.textContent = 'Saved!';
+}
 
-    scores.forEach((entry, index) => {
-        const li = document.createElement('li');
+// Event listeners
+startBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', startGame);
+pauseBtn.addEventListener('click', togglePause);
+saveScoreBtn.addEventListener('click', saveScoreOnline);
 
-        let medal = '';
-        if (index === 0) medal = 'gold';
-        else if (index === 1) medal = 'silver';
-        else if (index === 2) medal = 'bronze';
+// Load leaderboard on page load
+loadLeaderboard();
 
-        li.className = `leaderboard-item ${medal}`;
-        li.innerHTML = `
-            <span class="rank">#${index + 1}</span>
-            <span class="player-name">${entry.name}</span>
-            <span class="player-score">${entry.score.toLocaleString()}</span>
-        `;
-        leaderboardList.appendChild(li);
-    });
-});
 </script>
 </body>
 </html>
