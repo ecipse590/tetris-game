@@ -435,9 +435,17 @@
             database = getDatabase(app);
             isFirebaseConnected = true;
             updateConnectionStatus(true);
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
-            updateConnectionStatus(false);
+        }catch (error) {
+    updateConnectionStatus(false);
+    leaderboardList.innerHTML = `
+        <li class="leaderboard-item">
+            <span style="color:#e74c3c;">
+                Firebase error: ${error.message}
+            </span>
+        </li>
+    `;
+}
+
         }
 
         // ============================================
