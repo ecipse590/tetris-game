@@ -427,26 +427,8 @@
             appId: "1:823049208862:web:cd64c904c0b994545c1a0f"
         };
 
-        // Initialize Firebase
-        let app, database, isFirebaseConnected = false;
-        
-        try {
-            app = initializeApp(firebaseConfig);
-            database = getDatabase(app);
-            isFirebaseConnected = true;
-            updateConnectionStatus(true);
-        }catch (error) {
-    updateConnectionStatus(false);
-    leaderboardList.innerHTML = `
-        <li class="leaderboard-item">
-            <span style="color:#e74c3c;">
-                Firebase error: ${error.message}
-            </span>
-        </li>
-    `;
-}
+     
 
-        }
 
         // ============================================
         // TETRIS GAME LOGIC
@@ -491,7 +473,25 @@
         const restartBtn = document.getElementById('restart-btn');
         const saveScoreBtn = document.getElementById('save-score-btn');
         const playerNameInput = document.getElementById('player-name');
-
+  
+        // Initialize Firebase
+        let app, database, isFirebaseConnected = false;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            isFirebaseConnected = true;
+            updateConnectionStatus(true);
+        }catch (error) {
+    updateConnectionStatus(false);
+    leaderboardList.innerHTML = `
+        <li class="leaderboard-item">
+            <span style="color:#e74c3c;">
+                Firebase error: ${error.message}
+            </span>
+        </li>
+    `;
+}
         function initBoard() {
             gameBoard.innerHTML = '';
             board = [];
