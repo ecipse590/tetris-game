@@ -856,6 +856,36 @@ saveScoreBtn.addEventListener('click', saveScoreOnline);
 
 // Load leaderboard on page load
 loadLeaderboard();
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+    if (!isPlaying || isPaused) return;
+    
+    switch(e.key) {
+        case 'ArrowLeft':
+            movePiece(-1);
+            break;
+        case 'ArrowRight':
+            movePiece(1);
+            break;
+        case 'ArrowDown':
+            softDrop();
+            break;
+        case 'ArrowUp':
+            rotate();
+            break;
+        case ' ':
+            e.preventDefault();
+            hardDrop();
+            break;
+        case 'p':
+        case 'P':
+            togglePause();
+            break;
+    }
+});
+
+// Click pause overlay to resume
+pauseOverlay.addEventListener('click', togglePause);
 
 </script>
 </body>
