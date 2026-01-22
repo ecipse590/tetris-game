@@ -420,9 +420,9 @@
         const firebaseConfig = {
             apiKey: "AIzaSyC69AHLrQyGHlazgtTs9DVycAM_cN1s4Kc",
             authDomain: "tetris-online-1.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            databaseURL: "https://tetris-online-1-default-rtdb.firebaseio.com",
             projectId: "tetris-online-1",
-            storageBucket: ""tetris-online-1.firebasestorage.app",
+            storageBucket: "tetris-online-1.firebasestorage.app",
             messagingSenderId: "823049208862",
             appId: "1:823049208862:web:cd64c904c0b994545c1a0f"
         };
@@ -788,6 +788,29 @@
             const scoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
             
             onValue(scoresQuery, (snapshot) => {
-                const scores = [];
-                snapshot.forEach((childSnapshot) => {
-                    scores.push(childSnapshot.val());
+    const scores = [];
+
+    snapshot.forEach((childSnapshot) => {
+        scores.push(childSnapshot.val());
+    });
+
+    scores.sort((a, b) => b.score - a.score);
+    leaderboardList.innerHTML = '';
+
+    scores.forEach((entry, index) => {
+        const li = document.createElement('li');
+
+        let medal = '';
+        if (index === 0) medal = 'gold';
+        else if (index === 1) medal = 'silver';
+        else if (index === 2) medal = 'bronze';
+
+        li.className = `leaderboard-item ${medal}`;
+        li.innerHTML = `
+            <span class="rank">#${index + 1}</span>
+            <span class="player-name">${entry.name}</span>
+            <span class="player-score">${entry.score.toLocaleString()}</span>
+        `;
+        leaderboardList.appendChild(li);
+    });
+});
